@@ -28,5 +28,6 @@
 !/tmp/storage/
 !/tmp/storage/.keep
 
-# Ignore master key for decrypting credentials and more.
-/config/master.key
+# Allowing master key since it's just an exercise and not a real application
+# So it facilitates the development process across different machines
+# /config/master.key
