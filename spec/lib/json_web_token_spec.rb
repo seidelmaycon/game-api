@@ -1,5 +1,4 @@
 require "rails_helper"
-# require "jwt"
 
 RSpec.describe JsonWebToken do
   let(:payload) { { user_id: 123 } }
