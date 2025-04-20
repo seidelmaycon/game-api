@@ -8,7 +8,7 @@ describe Api::UserController, type: :controller do
     context "with valid parameters" do
       it "creates a new user and returns created" do
         expect {
-          post :create, params: valid_attributes
+          post :create, params: valid_attributes, as: :json
         }.to change(User, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -18,7 +18,7 @@ describe Api::UserController, type: :controller do
 
     context "with missing email or password" do
       it "returns a bad request error" do
-        post :create, params: invalid_attributes
+        post :create, params: invalid_attributes, as: :json
         expect(response).to have_http_status(:bad_request)
         expect(parsed_response["errors"]).to eq([ "Email and password are required" ])
       end
@@ -28,7 +28,7 @@ describe Api::UserController, type: :controller do
       before { create(:user, email: valid_attributes[:email]) }
 
       it "returns unprocessable entity error" do
-        post :create, params: valid_attributes
+        post :create, params: valid_attributes, as: :json
         expect(response).to have_http_status(:unprocessable_entity)
         expect(parsed_response["errors"]).to eq([ "Email has already been taken" ])
       end
@@ -38,7 +38,7 @@ describe Api::UserController, type: :controller do
       let(:invalid_password_attributes) { attributes_for(:user, password: "short") }
 
       it "returns unprocessable entity error" do
-        post :create, params: invalid_password_attributes
+        post :create, params: invalid_password_attributes, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         expect(parsed_response["errors"]).to eq([ "Password must be at least 8 characters and include at least one letter and one number" ])

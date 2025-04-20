@@ -2,6 +2,9 @@ Rails.application.routes.draw do
   namespace :api do
     post "user", to: "user#create"
     post "sessions", to: "sessions#create"
+    namespace :user do
+      post "game_events", to: "game_events#create"
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

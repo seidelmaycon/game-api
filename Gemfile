@@ -6,8 +6,8 @@ gem "rails", "~> 8.0.2"
 gem "pg", "~> 1.1"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
-# Build JSON APIs with ease [https://github.com/rails/jbuilder]
-# gem "jbuilder"
+# Build JSON APIs with Active Model Serializers [https://github.com/rails-api/active_model_serializers]
+gem "active_model_serializers", "~> 0.10.0"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"
