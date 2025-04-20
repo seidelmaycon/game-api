@@ -4,6 +4,8 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
   validate :password_complexity
 
+  has_many :game_events, dependent: :destroy
+
   private
 
   def password_complexity

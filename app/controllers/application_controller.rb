@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   before_action :authenticate_user!
+  before_action :set_default_format
 
   private
 
@@ -23,5 +24,9 @@ class ApplicationController < ActionController::API
 
   def render_unauthorized
     render json: { errors: [ "Unauthorized" ] }, status: :unauthorized
+  end
+
+  def set_default_format
+    request.format = :json
   end
 end

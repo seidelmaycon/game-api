@@ -48,8 +48,17 @@ RSpec.configure do |config|
 
   # Include parsed_response helper for controller specs
   config.include ResponseParsingHelper, type: :controller
+  # Include auth helper to handle JWT authentication in controller specs
+  config.include AuthHelpers, type: :controller
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+
+  Shoulda::Matchers.configure do |config|
+    config.integrate do |with|
+      with.test_framework :rspec
+      with.library :rails
+    end
+  end
 end
