@@ -1,6 +1,38 @@
 require "rails_helper"
 
 describe Api::UserController, type: :controller do
+  describe "GET #show" do
+    context "when authenticated" do
+      let(:user) { create(:user) }
+      let!(:game_events) { create_list(:game_event, 5, user: user) }
+      let!(:another_user_game_events) { create_list(:game_event, 3, user: create(:user)) }
+      before { set_auth_header_for(user) }
+
+      it "returns a 200 response with the current user" do
+        get :show, as: :json
+
+        expect(response).to have_http_status(:ok)
+        expect(parsed_response).to eq({
+          "user" => {
+            "id" => user.id,
+            "email" => user.email,
+            "stats" => {
+              "total_games_played" => 5
+            }
+          }
+        })
+      end
+    end
+
+    context "when not authenticated" do
+      it "returns a 401 unauthorized response" do
+        get :show, as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
   describe "POST #create" do
     let(:valid_attributes) { attributes_for(:user) }
     let(:invalid_attributes) { { email: "test@example.com" } }
