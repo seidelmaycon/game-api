@@ -10,8 +10,8 @@ class ApplicationController < ActionController::API
 
     begin
       decoded = JsonWebToken.decode(token)
-      @current_user = ::User.find(decoded[:user_id])
-    rescue JWT::DecodeError, JWT::ExpiredSignature, ActiveRecord::RecordNotFound
+      @current_user = decoded ? ::User.find(decoded[:user_id]) : nil
+    rescue ActiveRecord::RecordNotFound
       @current_user = nil
     end
 

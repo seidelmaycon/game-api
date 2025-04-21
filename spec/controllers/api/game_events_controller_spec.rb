@@ -52,5 +52,13 @@ RSpec.describe Api::User::GameEventsController, type: :controller do
         end
       end
     end
+
+    context "when not authenticated" do
+      it "returns a 401 unauthorized response" do
+        post :create, params: { game_event: valid_attributes }, as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 end

@@ -31,6 +31,15 @@ describe Api::UserController, type: :controller do
         expect(response).to have_http_status(:unauthorized)
       end
     end
+
+    context "with invalid bearer token" do
+      before { @request.headers['Authorization'] = "Bearer invalid_token" }
+      it "returns a 401 unauthorized response" do
+        get :show, as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 
   describe "POST #create" do
