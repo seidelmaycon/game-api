@@ -3,6 +3,11 @@ module Api
     skip_before_action :authenticate_user!, only: :create
     before_action :validate_params, only: :create
 
+
+    def show
+      render json: current_user
+    end
+
     def create
       user = ::User.new(user_params)
       if user.save
