@@ -8,19 +8,46 @@ describe Api::UserController, type: :controller do
       let!(:another_user_game_events) { create_list(:game_event, 3, user: create(:user)) }
       before { set_auth_header_for(user) }
 
-      it "returns a 200 response with the current user" do
-        get :show, as: :json
+      context "when user has an expired subscription" do
+        before do
+          allow(BillingService).to receive(:new).and_return(double(BillingService, get_subscription_status: BillingService::Result.new("expired")))
+        end
+        it "returns a 200 response with the current user" do
+          get :show, as: :json
 
-        expect(response).to have_http_status(:ok)
-        expect(parsed_response).to eq({
-          "user" => {
-            "id" => user.id,
-            "email" => user.email,
-            "stats" => {
-              "total_games_played" => 5
+          expect(response).to have_http_status(:ok)
+          expect(parsed_response).to eq({
+            "user" => {
+              "id" => user.id,
+              "email" => user.email,
+              "stats" => {
+                "total_games_played" => 5
+              },
+              "subscription_status" => "expired"
             }
-          }
-        })
+          })
+        end
+      end
+
+      context "when user has an active subscription" do
+        before do
+          allow(BillingService).to receive(:new).and_return(double(BillingService, get_subscription_status: BillingService::Result.new("active")))
+        end
+        it "returns a 200 response with the current user" do
+          get :show, as: :json
+
+          expect(response).to have_http_status(:ok)
+          expect(parsed_response).to eq({
+            "user" => {
+              "id" => user.id,
+              "email" => user.email,
+              "stats" => {
+                "total_games_played" => 5
+              },
+              "subscription_status" => "active"
+            }
+          })
+        end
       end
     end
 

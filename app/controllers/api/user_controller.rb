@@ -5,7 +5,7 @@ module Api
 
 
     def show
-      render json: current_user
+      render json: current_user, context: { subscription_status: subscription_status }
     end
 
     def create
@@ -18,6 +18,11 @@ module Api
     end
 
     private
+
+    def subscription_status
+      result = BillingService.new.get_subscription_status(current_user.id)
+      result.status
+    end
 
     def user_params
       params.permit(:email, :password)
