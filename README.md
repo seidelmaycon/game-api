@@ -36,20 +36,12 @@ To run all tests: `rspec`
 
 ### Authentication
 
-This API uses **JWT-based stateless authentication**, which is ideal for mobile clients:
+This API uses **JWT-based stateless authentication**:
 
-- Users sign up via `POST /api/user` with email and password.
-  - User is created with password encrypted using `has_secure_password` and `bcrypt`.
+- Users sign up via `POST /api/user` with email and password (minimum 8 characters, 1 letter, 1 number).
 - Upon login (`POST /api/sessions`), a JWT is issued.
-  - JWT is signed using Rails' secret key base.
   - JWT is valid for 7 days.
-- The JWT must be included in future requests using the `Authorization: Bearer <token>` header.
-
-**Why JWT?**
-
-- Stateless and scalable (no sessions to track);
-- Mobile and REST friendly;
-- Easy to test and extend;
+- The JWT must be included in future requests using the `Authorization: Bearer <token>` header or `Authorization: <token>`.
 
 ### Game Event Submission
 
@@ -113,18 +105,54 @@ GET /api/user
 
 ## Design Decisions
 
-#### JWT over Session-Based Auth
-- Stateless, mobile-friendly, avoids session storage complexity.
+#### Authentication
+##### **JWT-Based Authentication**: Implemented a stateless JWT authentication system instead of session-based auth for its mobile-friendliness and elimination of server-side session storage complexity.
 
-#### Manual Auth vs Devise
-- Chose `has_secure_password` + custom JWT logic for full control, transparency and readability.
+**Why JWT?**
+- Stateless and scalable (no sessions to track):
+  - JWTs are self-contained, making them ideal for stateless authentication and avoiding hitting the database on every request;
+- Mobile and REST friendly:
+  - JWTs empower mobile clients with a simple, secure, and scalable way to authenticate — without relying on web-specific mechanics like cookies or session state;
+- Easy to test and extend:
+  - JWTs are simple to mock and test;
+
+**Token Implementation**:
+- JWT tokens are generated using the HMAC-SHA256 algorithm (HS256);
+- Tokens contain the `user_id` as payload, Rails' `secret_key_base` as the signing key, and a 7-day expiration time;
+- Authentication headers follow the standard `Bearer {token}` format, but also supports `Authorization: {token}`, because specs are not clear about the format;
+- User passwords are securely hashed via `has_secure_password` after a complexity validation.
+
+#### Game Events Controller
+
+There is a know race condition in the game events controller, where is possible to run the `find` before another identical request creates the record. This would make one request succeed (the one that creates the record) and the other fails due the unique violation.
+
+To avoid data integrity issues, I added the unique index on the `game_name` and `type` columns.
+
+I could have used an upsert strategy to eliminate the race condition, but I chose to go with the unique index for simplicity in this case, since upsert skips active record validations.
+
+
+#### Event Type vs Type
+
+The API handles a naming conflict between the mobile app's expectations and Rails conventions:
+
+- The mobile app sends `type` in requests (as specified in requirements)
+- Since `type` is a reserved keyword in Rails (used for Single Table Inheritance), I used `event_type` internally
+- This required additional code to map between external `type` and internal `event_type`
+
+The requirements also specified that only `"COMPLETED"` is accepted as a type value. Although I could have hardcoded this value, I chose to properly validate and store the incoming type to maintain API flexibility for future enhancements.
+
+#### Game Events Controller
+
+To support idempotency in the Game Events API, the controller follows a "find-then-create" pattern: it first checks if an identical game event exists before attempting to create a new one. This approach introduces a potential race condition when concurrent requests try to create the same record simultaneously — both might find no existing record and then attempt to create it, resulting in one success and one unique constraint violation.
+
+Rather than implementing a more complex upsert strategy (which would bypass Active Record validations), I chose to accept this race condition risk in this first version in favor of simplicity and code consistency. To maintain data integrity, I added a unique index on the combination of `user_id`, `game_name`, `occurred_at`, and `event_type` columns.
 
 #### Service Objects
 - External billing integration encapsulated in a `BillingService` to keep controllers clean and code testable;
 - Billing integration handles flakiness and errors gracefully (e.g., returning `"unknown"` on failure).
 
 #### Serializer
-- Use `ActiveModelSerializers` to provide a clean abstraction for JSON rendering
+- Use `ActiveModelSerializers` to provide a clean abstraction for JSON rendering.
 - Chose over alternatives like JBuilder or custom to_json for:
   - Readable, object-oriented approach to JSON formatting
   - Simple integration with Rails controllers
@@ -142,4 +170,5 @@ GET /api/user
 
 - Add Swagger for API documentation;
 - Add refresh tokens for better auth UX;
-- Add retry and cache logic for external billing service.
+- Add retry and cache logic for external billing service;
+- Implement an upsert strategy to eliminate race conditions in game event processing.

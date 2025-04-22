@@ -4,7 +4,7 @@ module Api
     before_action :set_user, only: :create
 
     def create
-      if @user&.authenticate(params[:password])
+      if @user&.authenticate(session_params[:password])
         token = JsonWebToken.encode({ user_id: @user.id })
         render json: { token: token }, status: :created
       else
@@ -15,7 +15,11 @@ module Api
     private
 
     def set_user
-      @user = ::User.find_by(email: params[:email])
+      @user = ::User.find_by(email: session_params[:email])
+    end
+
+    def session_params
+      params.permit(:email, :password)
     end
   end
 end
