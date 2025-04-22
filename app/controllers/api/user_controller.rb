@@ -3,7 +3,6 @@ module Api
     skip_before_action :authenticate_user!, only: :create
     before_action :validate_params, only: :create
 
-
     def show
       render json: current_user, context: { subscription_status: subscription_status }
     end
@@ -29,9 +28,9 @@ module Api
     end
 
     def validate_params
-      if user_params[:email].blank? || user_params[:password].blank?
-        render json: { errors: [ "Email and password are required" ] }, status: :bad_request
-      end
+      return if user_params[:email].present? && user_params[:password].present?
+
+      render json: { errors: [ "Email and password are required" ] }, status: :bad_request
     end
   end
 end
