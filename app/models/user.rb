@@ -6,6 +6,10 @@ class User < ApplicationRecord
 
   has_many :game_events, dependent: :destroy
 
+  def total_games_played
+    game_events.completed.count
+  end
+
   private
 
   def password_complexity

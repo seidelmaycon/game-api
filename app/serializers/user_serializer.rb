@@ -3,7 +3,7 @@ class UserSerializer < ActiveModel::Serializer
 
   def stats
     {
-      total_games_played: object.game_events.count
+      total_games_played: object.total_games_played
     }
   end
 
